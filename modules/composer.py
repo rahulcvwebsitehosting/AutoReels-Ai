@@ -122,13 +122,13 @@ class Composer:
                 .run(overwrite_output=True, quiet=True)
             )
 
-            # Overlay subtitles (use forward slashes for Windows FFmpeg compat)
-            safe_srt = srt_path.replace('\\', '/')
+            # Overlay subtitles (use just the filename, cwd handles the path)
+            srt_filename = f"scene_{scene_id}.srt"
             (
                 ffmpeg.input(base_path)
-                .filter('subtitles', safe_srt, force_style='Alignment=2,FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF,BackColour=&H80000000,Outline=1,Shadow=0')
+                .filter('subtitles', srt_filename, force_style='Alignment=2,FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF,BackColour=&H80000000,Outline=1,Shadow=0')
                 .output(subtitled_path, vcodec='libx264', acodec='copy', pix_fmt='yuv420p')
-                .run(overwrite_output=True, quiet=True)
+                .run(overwrite_output=True, quiet=True, cwd=self.temp_dir)
             )
 
             return subtitled_path
