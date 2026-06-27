@@ -68,7 +68,7 @@ PROVIDERS = {
     },
     "ollama": {
         "key_env": "OLLAMA_API_KEY",
-        "base_url": "https://ollama.com/api",  # cloud; override for local
+        "base_url": "http://localhost:11434/v1",  # local server; override with OLLAMA_BASE_URL for cloud
         "model_env": "OLLAMA_MODEL",
         "default": "llama3.1",
     },
