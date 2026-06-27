@@ -148,7 +148,14 @@ class OpenAICompatibleClient(LLMClient):
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
         )
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content is None:
+            finish = response.choices[0].finish_reason
+            raise RuntimeError(f"OpenAI-compatible provider returned null content (finish_reason={finish}).")
+        text = content.strip()
+        if not text:
+            raise RuntimeError("OpenAI-compatible provider returned an empty response.")
+        return text
 
 
 # ---------------------------------------------------------------------------
@@ -168,10 +175,12 @@ class AnthropicClient(LLMClient):
             max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
-        # The Messages API returns a list of content blocks; join text blocks.
-        return "".join(
+        text = "".join(
             block.text for block in response.content if getattr(block, "text", None)
         ).strip()
+        if not text:
+            raise RuntimeError("Anthropic returned an empty response (content filter or refusal).")
+        return text
 
 
 # ---------------------------------------------------------------------------
@@ -185,8 +194,14 @@ class GeminiClient(LLMClient):
         self.client = genai.Client(api_key=api_key)
 
     def generate(self, prompt, max_tokens=4096):
-        response = self.client.models.generate_content(model=self.model, contents=prompt)
-        return response.text.strip()
+        try:
+            response = self.client.models.generate_content(model=self.model, contents=prompt)
+            text = response.text.strip()
+        except Exception as e:
+            raise RuntimeError(f"Gemini API error: {e}")
+        if not text:
+            raise RuntimeError("Gemini returned an empty response (safety filter or refusal).")
+        return text
 
 
 # ---------------------------------------------------------------------------

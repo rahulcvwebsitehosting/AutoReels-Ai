@@ -77,14 +77,14 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
-        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except json.JSONDecodeError:
-            print("[ERROR] Error parsing JSON. Raw output:")
+        except Exception as e:
+            print(f"[ERROR] Script generation failed: {e}")
+            print("[RAW]")
             print(clean_text)
             return None
 
@@ -153,14 +153,14 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
-        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except json.JSONDecodeError:
-            print("[ERROR] Error parsing refined script JSON. Raw output:")
+        except Exception as e:
+            print(f"[ERROR] Script refinement failed: {e}")
+            print("[RAW]")
             print(clean_text)
             return None
 
@@ -223,13 +223,13 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
-        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except json.JSONDecodeError:
-            print("[ERROR] Error parsing expanded script JSON. Raw output:")
+        except Exception as e:
+            print(f"[ERROR] Script expansion failed: {e}")
+            print("[RAW]")
             print(clean_text)
             return None
