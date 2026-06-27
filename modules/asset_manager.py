@@ -18,54 +18,54 @@ class AssetManager:
         self.assets_dir = os.path.join(os.getcwd(), "assets", "video_clips")
         os.makedirs(self.assets_dir, exist_ok=True)
 
-    def search_video(self, query, duration_min=4):
+    def search_video(self, query, duration_min=4, depth=0):
         """
         Searches Pexels for a portrait video matching the query.
         Returns the download URL or None.
         """
-        print(f"   🔍 Searching Pexels for: '{query}'...")
+        print(f"   [PEXELS] Searching: '{query}'...")
         
         params = {
             "query": query,
-            "per_page": 5,        # Fetch top 5 results to pick from
+            "per_page": 5,
             "orientation": "portrait",
-            "size": "medium"      # 'medium' is usually HD ready, saves bandwidth
+            "size": "medium"
         }
         
         try:
             response = requests.get(self.base_url, headers=self.headers, params=params, timeout=10)
             if response.status_code != 200:
-                print(f"      ⚠️ API Error: {response.status_code}")
+                print(f"      [WARN] API Error: {response.status_code}")
                 return None
                 
             data = response.json()
             
             if not data.get('videos'):
-                # Retry strategy: Simplify query if complex query fails
-                if " " in query:
-                    simple_query = query.split()[-1] # Try last word (usually the noun)
-                    print(f"      ⚠️ No results. Retrying with '{simple_query}'...")
-                    return self.search_video(simple_query)
+                if depth == 0 and " " in query:
+                    words = query.split()
+                    # Smart retry: drop the last descriptive word, keep the topic anchor
+                    if len(words) >= 3:
+                        simpler = " ".join(words[:-1])
+                        print(f"      [WARN] No results. Retrying with fewer terms: '{simpler}'")
+                        return self.search_video(simpler, duration_min, depth=1)
+                    elif len(words) == 2:
+                        simpler = words[-1]
+                        print(f"      [WARN] No results. Retrying with core term: '{simpler}'")
+                        return self.search_video(simpler, duration_min, depth=1)
                 return None
             
-            # Filter logic: Prefer videos that aren't too short (at least 4 seconds)
             valid_videos = [v for v in data['videos'] if v['duration'] >= duration_min]
-            
             if not valid_videos:
-                valid_videos = data['videos'] # Fallback to whatever exists
+                valid_videos = data['videos']
                 
-            # Randomize selection
             selected_video = random.choice(valid_videos)
-            
-            # Get best quality video file link
             video_files = selected_video['video_files']
             video_files.sort(key=lambda x: x['width'] * x['height'], reverse=True)
-            
             download_link = video_files[0]['link']
             return download_link
 
         except Exception as e:
-            print(f"      ❌ Error searching Pexels: {e}")
+            print(f"      [ERROR] Searching Pexels: {e}")
             return None
 
     def download_video(self, url, filename):

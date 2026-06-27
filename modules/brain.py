@@ -35,6 +35,10 @@ class ContentBrain:
       - **visual_1:** Matches the *start* of the sentence.
       - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
     - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
+    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
+      name or context. For example, if the topic is "Madurai culture", search 
+      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
+      just "street food". This ensures stock footage is specific to the subject.
 
     ### OUTPUT FORMAT (Strict JSON):
     [
@@ -105,6 +109,10 @@ class ContentBrain:
       - **visual_1:** Matches the *start* of the sentence.
       - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
     - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
+    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
+      name or context. For example, if the topic is "Madurai culture", search 
+      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
+      just "street food". This ensures stock footage is specific to the subject.
 
     ### USER'S SCRIPT:
     {user_text}
@@ -164,6 +172,10 @@ class ContentBrain:
       - **visual_1:** Matches the *start* of the sentence.
       - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
     - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
+    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
+      name or context. For example, if the topic is "Madurai culture", search 
+      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
+      just "street food". This ensures stock footage is specific to the subject.
 
     Keep the feel and direction of the user's ideas, but improve structure,
     pacing, and visual hooks.
