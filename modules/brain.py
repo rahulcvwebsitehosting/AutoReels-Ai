@@ -5,25 +5,17 @@ from modules.llm import get_llm_client
 load_dotenv()
 
 class ContentBrain:
-    def __init__(self):
-        # Pick the LLM provider once (env var LLM_PROVIDER or interactive menu).
-        self.llm = get_llm_client()
+    def __init__(self, provider_id=None):
+        self.llm = get_llm_client(provider_id)
 
     def get_trending_topic(self):
-        """
-        In a full build, this would scrape Google Trends or Twitter.
-        For now, we ask Gemini to pick a viral niche topic.
-        """
         prompts = "Give me 1 specific, viral, and engaging topic for a Short Documentary. It should be a 'Engaging Did you know' fact or a 'Fun/intriguing Engaging News'. return ONLY the topic name."
         topic = self.llm.generate(prompts)
-        print(f"🎯 Selected Topic: {topic}")
+        print(f"[Topic] {topic}")
         return topic
 
     def generate_script(self, topic):
-        """
-        Generates a structured JSON script with visual cues.
-        """
-        print(f"📝 Writing script for: {topic}...")
+        print(f"[Script] Writing script for: {topic}...")
         prompt = f"""
     You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
     Topic: {topic}
@@ -62,64 +54,31 @@ class ContentBrain:
         }}
     ]
     """
-    #     prompt = f"""
-    # You are a master visual storyteller creating a viral YouTube Short.
-    # Topic: {topic}
-    
-    # ### CRITICAL REQUIREMENTS:
-    # 1. **Perspective:** Strictly **3rd Person** (e.g., "Scientists discovered..." or "The world changed..."). No "I" or "You".
-    # 2. **Tone:** Cinematic, high-stakes, and slightly exaggerated.
-    #    - Use **Power Words**: Instead of "big," use "colossal." Instead of "scary," use "terrifying."
-    #    - The vibe should be "Mystery Documentary" (like Vox or National Geographic but faster).
-    # 3. **Length:** Exactly **8 to 9 scenes**. Total read time 40-50 seconds.
-    # 4. **Visual Strategy:** Keywords must be optimized for Pexels Stock Footage.
-    #    - Use simple, broad nouns: "storm clouds", "ancient ruins", "laboratory microscope".
-    #    - Avoid complex actions or specific people.
-    
-    # ### STRUCTURE GUIDE:
-    # - **Scene 1 (The Hook):** A mind-blowing statement or paradox. Grab attention immediately.
-    # - **Scene 2-3 (The Mystery):** Establish why this is strange, dangerous, or important.
-    # - **Scene 4-7 (The Climax):** The "Wait, what?" moment. The biggest twist or fact.
-    # - **Scene 8-9 (The Mic Drop):** A final haunting thought or powerful conclusion.
-    
-    # ### OUTPUT FORMAT (Strict JSON):
-    # [
-    #     {{
-    #         "id": 1,
-    #         "text": "Deep beneath the Antarctic ice, something IMPOSSIBLE has just been detected.",
-    #         "keywords": "glacier aerial drone cinematic",
-    #         "mood": "ominous" 
-    #     }},
-    #     {{
-    #         "id": 2,
-    #         "text": "For centuries, maps showed this area as empty... they were wrong.",
-    #         "keywords": "old map ancient paper table",
-    #         "mood": "mystery"
-    #     }}
-    # ]
-    # """
-    
 
         response = self.llm.generate(prompt)
-
-        # Clean the response to ensure it's valid JSON (sometimes AI adds markdown)
         clean_text = response.replace('```json', '').replace('```', '').strip()
-        
+
         try:
             script_data = json.loads(clean_text)
             return script_data
         except json.JSONDecodeError:
-            print("❌ Error parsing JSON. Raw output:")
+            print("[ERROR] Error parsing JSON. Raw output:")
             print(clean_text)
             return None
-        
-# --- TESTING THE MODULE ---
-if __name__ == "__main__":
-    brain = ContentBrain()
-    topic = brain.get_trending_topic()
-    script = brain.generate_script(topic)
-    
-    # Save to file to verify
-    with open("script.json", "w") as f:
-        json.dump(script, f, indent=4)
-        print("✅ Script saved to script.json")
+
+    @staticmethod
+    def parse_manual_script(text):
+        clean = text.replace('```json', '').replace('```', '').strip()
+        try:
+            data = json.loads(clean)
+            if not isinstance(data, list):
+                raise ValueError("Script must be a JSON array of scenes.")
+            for i, scene in enumerate(data):
+                if not all(k in scene for k in ("id", "text", "visual_1", "visual_2")):
+                    raise ValueError(
+                        f"Scene {i} is missing one of: id, text, visual_1, visual_2"
+                    )
+            return data
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"[ERROR] Invalid script format: {e}")
+            return None

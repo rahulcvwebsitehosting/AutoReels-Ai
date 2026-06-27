@@ -82,6 +82,38 @@ PROVIDERS = {
 
 DEFAULT_PROVIDER = "gemini"
 
+# Patterns that indicate a placeholder (unconfigured) API key
+_PLACEHOLDER_PATTERNS = ["your_", "sk-your", "replace_me"]
+
+
+def _is_key_configured(env_var):
+    """Return True if the env var is set and not a placeholder/default value."""
+    val = os.getenv(env_var, "")
+    if not val:
+        return False
+    lower = val.lower()
+    for pattern in _PLACEHOLDER_PATTERNS:
+        if pattern in lower:
+            return False
+    return True
+
+
+def get_configured_providers():
+    """
+    Return a list of provider IDs whose API key env var is set to a real value.
+    Providers whose key env var is missing, empty, or still a placeholder
+    (e.g. 'your_ollama_api_key') are excluded.
+    """
+    configured = []
+    for pid, cfg in PROVIDERS.items():
+        key_env = cfg["key_env"]
+        # Ollama is special: local mode works without any key
+        if pid == "ollama" and _is_key_configured(key_env):
+            configured.append(pid)
+        elif _is_key_configured(key_env):
+            configured.append(pid)
+    return configured
+
 
 class LLMClient:
     """
@@ -208,28 +240,30 @@ def _build_client(provider_id):
     )
 
 
-def get_llm_client():
+def get_llm_client(provider_id=None):
     """
     Return an LLMClient for the active provider.
 
     Resolution order:
-      1. LLM_PROVIDER env var (validated against the registry)
-      2. Interactive menu (when not set / unattended runs would need it set)
-      3. Gemini (the historical default)
+      1. `provider_id` argument (if given and valid)
+      2. LLM_PROVIDER env var (validated against the registry)
+      3. Interactive menu (when not set / unattended runs would need it set)
+      4. Gemini (the historical default)
     """
-    provider_id = (os.getenv("LLM_PROVIDER") or "").strip().lower()
-
     if provider_id:
-        if provider_id not in PROVIDERS:
+        pid = provider_id.strip().lower()
+        if pid not in PROVIDERS:
             valid = ", ".join(PROVIDERS.keys())
             raise RuntimeError(
-                f"Unknown LLM_PROVIDER='{provider_id}'. Valid options: {valid}."
+                f"Unknown LLM_PROVIDER='{pid}'. Valid options: {valid}."
             )
     else:
-        provider_id = _prompt_for_provider()
+        pid = (os.getenv("LLM_PROVIDER") or "").strip().lower()
+        if not pid:
+            pid = _prompt_for_provider()
 
-    print(f"🧠 Using LLM provider: {provider_id}")
-    return _build_client(provider_id)
+    print(f"[LLM] Using provider: {pid}")
+    return _build_client(pid)
 
 
 if __name__ == "__main__":
