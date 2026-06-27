@@ -1,4 +1,5 @@
 import asyncio
+import random
 from modules.brain import ContentBrain
 from modules.asset_manager import AssetManager
 from modules.audio import AudioEngine
@@ -180,7 +181,35 @@ async def main():
     assets_map = asset_manager.get_videos(script)
 
     composer = Composer()
-    final_scene_paths = composer.render_all_scenes(script, assets_map)
+    avatars = Composer.list_avatars()
+    avatar_path = None
+    if avatars:
+        print()
+        print("[AVATAR] Choose an avatar for the video:")
+        for i, a in enumerate(avatars, start=1):
+            name = os.path.basename(a)
+            print(f"  {i}. {name}")
+        print(f"  {len(avatars)+1}. No avatar (skip)")
+        while True:
+            choice = input(f"Enter choice [1-{len(avatars)+1}] (default random): ").strip()
+            if not choice:
+                avatar_path = random.choice(avatars)
+                break
+            if choice.isdigit():
+                idx = int(choice)
+                if 1 <= idx <= len(avatars):
+                    avatar_path = avatars[idx - 1]
+                    break
+                if idx == len(avatars) + 1:
+                    avatar_path = None
+                    break
+            print("   Invalid choice, try again.")
+        if avatar_path:
+            print(f"[AVATAR] Using: {os.path.basename(avatar_path)}")
+        else:
+            print("[AVATAR] Skipping avatar injection")
+
+    final_scene_paths = composer.render_all_scenes(script, assets_map, avatar_path)
 
     if final_scene_paths:
         composer.concatenate_with_transitions(final_scene_paths)
