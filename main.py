@@ -107,20 +107,24 @@ async def main():
 
     if mode == "manual":
         raw = input_manual_script()
-        script = ContentBrain.parse_manual_script(raw)
-        if script is None:
+        parsed = ContentBrain.parse_manual_script(raw)
+        if parsed is None:
             print("[ERROR] Script parsing failed. Aborting.")
             return
         print()
         print("[SCRIPT] How should AI handle your script?")
-        print("  1. Follow it exactly — use my script as-is")
-        print("  2. Use as a general idea — AI expands it into a full script")
+        print("  1. AI refines it — keeps your story, fixes grammar/format/visuals")
+        print("  2. AI expands it — uses your ideas as inspiration for a new script")
         while True:
             choice = input("Enter choice [1-2] (default 1): ").strip()
             if not choice or choice == "1":
+                script = brain.refine_script(parsed, topic)
+                if script is None:
+                    print("[ERROR] Script refinement failed. Aborting.")
+                    return
                 break
             if choice == "2":
-                script = brain.expand_script(script, topic)
+                script = brain.expand_script(parsed, topic)
                 if script is None:
                     print("[ERROR] Script expansion failed. Aborting.")
                     return

@@ -83,6 +83,56 @@ class ContentBrain:
             print(f"[ERROR] Invalid script format: {e}")
             return None
 
+    def refine_script(self, user_script, topic):
+        print(f"[Script] Understanding and refining your script...")
+        user_json = json.dumps(user_script, indent=2)
+        prompt = f"""
+    You are a professional script editor for a high-retention "Edutainment" YouTube Shorts channel.
+    Topic: {topic}
+
+    A user has written a script below. Your job is to:
+    1. Understand the story they want to tell.
+    2. Fix any grammar, tone, or pacing issues.
+    3. Restructure it into exactly 8-9 well-flowing scenes (Hook -> Context -> Mechanism -> Twist -> Outro).
+    4. Generate appropriate Pexels-optimised search terms for each scene.
+    5. Keep the user's original story, facts, and narrative intact — do not change the core content.
+
+    ### RULES:
+    - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides..."). Convert any 1st/2nd person to 3rd.
+    - **Tone:** Engaging, fast-paced, logical. No fluff.
+    - **Structure:** Exactly 8-9 Scenes.
+    - **Flow:** Hook -> Context -> Mechanism -> Twist -> Outro.
+    - For EVERY scene, provide TWO distinct search terms:
+      - **visual_1:** Matches the *start* of the sentence.
+      - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
+    - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
+
+    ### USER'S SCRIPT:
+    {user_json}
+
+    ### OUTPUT FORMAT (Strict JSON):
+    [
+        {{
+            "id": 1,
+            "text": "Your scene text here.",
+            "visual_1": "search term for first half",
+            "visual_2": "search term for second half",
+            "mood": "intriguing | educational | ominous | mysterious"
+        }}
+    ]
+    """
+
+        response = self.llm.generate(prompt)
+        clean_text = response.replace('```json', '').replace('```', '').strip()
+
+        try:
+            script_data = json.loads(clean_text)
+            return script_data
+        except json.JSONDecodeError:
+            print("[ERROR] Error parsing refined script JSON. Raw output:")
+            print(clean_text)
+            return None
+
     def expand_script(self, user_script, topic):
         print(f"[Script] Expanding your ideas into a full script...")
         user_json = json.dumps(user_script, indent=2)
