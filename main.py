@@ -77,19 +77,34 @@ def get_script_mode():
         print("   Invalid choice, try again.")
 
 
-def input_manual_script():
+def get_custom_script_input():
     print()
-    print("[SCRIPT] Paste your script JSON below.")
-    print("   Each scene needs: id, text, visual_1, visual_2, mood")
-    print("   Type '---' on a new line when done:")
-    print()
-    lines = []
+    print("[SCRIPT] How would you like to provide your script?")
+    print("  1. Type or paste the script directly")
+    print("  2. Load from a .txt file on your computer")
     while True:
-        line = input()
-        if line.strip() == "---":
-            break
-        lines.append(line)
-    return "\n".join(lines)
+        choice = input("Enter choice [1-2] (default 1): ").strip()
+        if not choice or choice == "1":
+            print()
+            print("[SCRIPT] Paste your script below (plain text, no JSON needed).")
+            print("  Type '---' on a new line when done:")
+            print()
+            lines = []
+            while True:
+                line = input()
+                if line.strip() == "---":
+                    break
+                lines.append(line)
+            return "\n".join(lines)
+        if choice == "2":
+            print()
+            path = input("Enter full path to your .txt file: ").strip()
+            if not os.path.exists(path):
+                print(f"[ERROR] File not found: {path}")
+                return None
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        print("   Invalid choice, try again.")
 
 
 async def main():
@@ -106,10 +121,11 @@ async def main():
     mode = get_script_mode()
 
     if mode == "manual":
-        raw = input_manual_script()
-        parsed = ContentBrain.parse_manual_script(raw)
-        if parsed is None:
-            print("[ERROR] Script parsing failed. Aborting.")
+        raw = get_custom_script_input()
+        if raw is None:
+            return
+        if not raw.strip():
+            print("[ERROR] No script content provided. Aborting.")
             return
         print()
         print("[SCRIPT] How should AI handle your script?")
@@ -118,13 +134,13 @@ async def main():
         while True:
             choice = input("Enter choice [1-2] (default 1): ").strip()
             if not choice or choice == "1":
-                script = brain.refine_script(parsed, topic)
+                script = brain.refine_script(raw, topic)
                 if script is None:
                     print("[ERROR] Script refinement failed. Aborting.")
                     return
                 break
             if choice == "2":
-                script = brain.expand_script(parsed, topic)
+                script = brain.expand_script(raw, topic)
                 if script is None:
                     print("[ERROR] Script expansion failed. Aborting.")
                     return

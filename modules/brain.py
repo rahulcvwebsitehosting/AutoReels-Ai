@@ -66,26 +66,8 @@ class ContentBrain:
             print(clean_text)
             return None
 
-    @staticmethod
-    def parse_manual_script(text):
-        clean = text.replace('```json', '').replace('```', '').strip()
-        try:
-            data = json.loads(clean)
-            if not isinstance(data, list):
-                raise ValueError("Script must be a JSON array of scenes.")
-            for i, scene in enumerate(data):
-                if not all(k in scene for k in ("id", "text", "visual_1", "visual_2")):
-                    raise ValueError(
-                        f"Scene {i} is missing one of: id, text, visual_1, visual_2"
-                    )
-            return data
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"[ERROR] Invalid script format: {e}")
-            return None
-
-    def refine_script(self, user_script, topic):
+    def refine_script(self, user_text, topic):
         print(f"[Script] Understanding and refining your script...")
-        user_json = json.dumps(user_script, indent=2)
         prompt = f"""
     You are a professional script editor for a high-retention "Edutainment" YouTube Shorts channel.
     Topic: {topic}
@@ -108,7 +90,7 @@ class ContentBrain:
     - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
 
     ### USER'S SCRIPT:
-    {user_json}
+    {user_text}
 
     ### OUTPUT FORMAT (Strict JSON):
     [
@@ -133,9 +115,8 @@ class ContentBrain:
             print(clean_text)
             return None
 
-    def expand_script(self, user_script, topic):
+    def expand_script(self, user_text, topic):
         print(f"[Script] Expanding your ideas into a full script...")
-        user_json = json.dumps(user_script, indent=2)
         prompt = f"""
     You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
     Topic: {topic}
@@ -157,7 +138,7 @@ class ContentBrain:
     pacing, and visual hooks.
 
     ### USER'S IDEAS:
-    {user_json}
+    {user_text}
 
     ### OUTPUT FORMAT (Strict JSON):
     [
