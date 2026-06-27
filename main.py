@@ -146,6 +146,18 @@ async def main():
                     return
                 break
             print("   Invalid choice, try again.")
+        # If the original content was long, confirm the condensed version is okay
+        input_word_count = len(raw.split())
+        output_scene_count = len(script)
+        if input_word_count > 400:
+            print()
+            print(f"[SCRIPT] Your original script was ~{input_word_count} words.")
+            print(f"  The AI condensed it into {output_scene_count} scenes")
+            print(f"  (fits ~40-60 second Short). Some content may have been cut.")
+            proceed = input("  Proceed with this condensed version? [Y/n]: ").strip().lower()
+            if proceed == "n":
+                print("[ABORTED] Run again with shorter content.")
+                return
     else:
         try:
             script = brain.generate_script(topic)

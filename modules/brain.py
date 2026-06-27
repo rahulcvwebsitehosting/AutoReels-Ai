@@ -68,6 +68,17 @@ class ContentBrain:
 
     def refine_script(self, user_text, topic):
         print(f"[Script] Understanding and refining your script...")
+        word_count = len(user_text.split())
+        length_note = ""
+        if word_count > 500:
+            length_note = f"""
+    NOTE: The user's script is {word_count} words, which is too long for a single 
+    YouTube Short (max ~60 seconds / ~150 words of narration). You MUST:
+    - Summarize and condense the most important parts.
+    - Prioritize the hook, key facts, and the twist/outro.
+    - Cut repetitive or次要 details.
+    - Output exactly 8-9 scenes that cover the essential story.
+    """
         prompt = f"""
     You are a professional script editor for a high-retention "Edutainment" YouTube Shorts channel.
     Topic: {topic}
@@ -75,14 +86,20 @@ class ContentBrain:
     A user has written a script below. Your job is to:
     1. Understand the story they want to tell.
     2. Fix any grammar, tone, or pacing issues.
-    3. Restructure it into exactly 8-9 well-flowing scenes (Hook -> Context -> Mechanism -> Twist -> Outro).
+    3. Restructure into well-flowing scenes (Hook -> Context -> Mechanism -> Twist -> Outro).
     4. Generate appropriate Pexels-optimised search terms for each scene.
     5. Keep the user's original story, facts, and narrative intact — do not change the core content.
+
+    ### LENGTH CONSTRAINT:
+    A YouTube Short has ~40-60 seconds of narration, roughly 8-9 short scenes.
+    {length_note}
+    If the source fits in 8-9 scenes, use it fully. If not, prioritize the 
+    most engaging parts — the hook, the key revelation, and the strong outro.
 
     ### RULES:
     - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides..."). Convert any 1st/2nd person to 3rd.
     - **Tone:** Engaging, fast-paced, logical. No fluff.
-    - **Structure:** Exactly 8-9 Scenes.
+    - **Structure:** 8-9 Scenes.
     - **Flow:** Hook -> Context -> Mechanism -> Twist -> Outro.
     - For EVERY scene, provide TWO distinct search terms:
       - **visual_1:** Matches the *start* of the sentence.
@@ -117,12 +134,26 @@ class ContentBrain:
 
     def expand_script(self, user_text, topic):
         print(f"[Script] Expanding your ideas into a full script...")
+        word_count = len(user_text.split())
+        length_note = ""
+        if word_count > 500:
+            length_note = f"""
+    NOTE: The user's material is {word_count} words, which is too long for a
+    single YouTube Short. Select the best ideas and condense them into 
+    8-9 scenes that capture the essence.
+    """
         prompt = f"""
     You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
     Topic: {topic}
 
     A user has provided their rough ideas below. Expand them into a polished
     8-9 scene script following the exact format required.
+
+    ### LENGTH CONSTRAINT:
+    A YouTube Short has ~40-60 seconds of narration, roughly 8-9 short scenes.
+    {length_note}
+    If the source fits, use it fully. If it's too long, pick the best ideas
+    and condense them into a tight, engaging narrative.
 
     ### RULES:
     - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides...").
