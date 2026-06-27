@@ -134,7 +134,7 @@ class Composer:
 
         except ffmpeg.Error as e:
             error_log = e.stderr.decode('utf8') if e.stderr else str(e)
-            print(f"[ERROR] Render fail scene {scene_id}: {error_log[:200]}")
+            print(f"[ERROR] Render fail scene {scene_id}: {error_log}")
             return None
 
     def render_all_scenes(self, script_data, video_pairs, avatar_path=None):
