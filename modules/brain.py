@@ -76,15 +76,18 @@ class ContentBrain:
     notes, explanations, or summaries before or after the JSON.
     """
 
-        response = self.llm.generate(prompt)
+        try:
+            response = self.llm.generate(prompt)
+        except Exception as e:
+            print(f"[ERROR] Script generation failed: {e}")
+            return None
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except Exception as e:
-            print(f"[ERROR] Script generation failed: {e}")
-            print("[RAW]")
+        except json.JSONDecodeError:
+            print(f"[ERROR] Script generation JSON error. Raw:")
             print(clean_text)
             return None
 
@@ -152,15 +155,18 @@ class ContentBrain:
     notes, explanations, or summaries before or after the JSON.
     """
 
-        response = self.llm.generate(prompt)
+        try:
+            response = self.llm.generate(prompt)
+        except Exception as e:
+            print(f"[ERROR] Script refinement failed: {e}")
+            return None
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except Exception as e:
-            print(f"[ERROR] Script refinement failed: {e}")
-            print("[RAW]")
+        except json.JSONDecodeError:
+            print(f"[ERROR] Script refinement JSON error. Raw:")
             print(clean_text)
             return None
 
@@ -222,14 +228,17 @@ class ContentBrain:
     notes, explanations, or summaries before or after the JSON.
     """
 
-        response = self.llm.generate(prompt)
+        try:
+            response = self.llm.generate(prompt)
+        except Exception as e:
+            print(f"[ERROR] Script expansion failed: {e}")
+            return None
         clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
             return script_data
-        except Exception as e:
-            print(f"[ERROR] Script expansion failed: {e}")
-            print("[RAW]")
+        except json.JSONDecodeError:
+            print(f"[ERROR] Script expansion JSON error. Raw:")
             print(clean_text)
             return None

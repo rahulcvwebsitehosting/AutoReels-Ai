@@ -108,7 +108,7 @@ def get_configured_providers():
     for pid, cfg in PROVIDERS.items():
         key_env = cfg["key_env"]
         # Ollama is special: local mode works without any key
-        if pid == "ollama" and _is_key_configured(key_env):
+        if pid == "ollama":
             configured.append(pid)
         elif _is_key_configured(key_env):
             configured.append(pid)
@@ -245,14 +245,17 @@ def _build_client(provider_id):
         return GeminiClient(provider_id, model, _require_key(provider_id, cfg))
 
     # Everything else is OpenAI-compatible.
-    # Ollama's base URL can point at a local server; honor OLLAMA_BASE_URL if set.
     base_url = cfg["base_url"]
+    api_key = os.getenv(cfg["key_env"], "")
     if provider_id == "ollama":
         base_url = os.getenv("OLLAMA_BASE_URL", base_url)
+        # Ollama local mode works without an API key
+        if not api_key or not _is_key_configured(cfg["key_env"]):
+            api_key = "ollama"  # placeholder, unused by local server
+    elif not api_key:
+        api_key = _require_key(provider_id, cfg)
 
-    return OpenAICompatibleClient(
-        provider_id, model, _require_key(provider_id, cfg), base_url
-    )
+    return OpenAICompatibleClient(provider_id, model, api_key, base_url)
 
 
 def get_llm_client(provider_id=None):
