@@ -17,44 +17,40 @@ class ContentBrain:
     def generate_script(self, topic):
         print(f"[Script] Writing script for: {topic}...")
         prompt = f"""
-    You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
+    You are an investigative scriptwriter for a high-retention YouTube Shorts channel.
+
     Topic: {topic}
 
-    ### GOAL:
-    Create a script where every sentence has a "Visual Switch". 
-    To keep retention high, we need TWO different stock videos for every single scene.
+    ### YOUR JOB:
+    Write a script that is FACT-BACKED, not generic. Every claim must include
+    its source (e.g., "Amnesty International reported...", "The ICJ found...",
+    "According to UN data..."). Do NOT make unsourced assertions.
 
-    ### 1. SCRIPT REQUIREMENTS (The Voiceover):
-    - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides...").
-    - **Tone:** Engaging, fast-paced, logical. No fluff.
-    - **Structure:** 8-9 Scenes total.
-    - **Flow:** Hook -> Context -> Mechanism (How it works) -> Twist -> Outro.
+    ### STRUCTURE:
+    - Hook -> Context -> Evidence -> Counterpoint -> Outro
+    - 8-9 scenes total
+    - Strictly 3rd Person perspective
+    - Fast-paced, engaging, no fluff
 
-    ### 2. VISUAL REQUIREMENTS (Dual Visuals):
-    - For EVERY scene, provide TWO distinct search terms:
-      - **visual_1:** Matches the *start* of the sentence.
-      - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
-    - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
-    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
-      name or context. For example, if the topic is "Madurai culture", search 
-      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
-      just "street food". This ensures stock footage is specific to the subject.
+    ### VISUAL RULES (CRITICAL):
+    Every scene has TWO visual keywords. These MUST be:
+    1. **Reasoned** — directly tied to the specific claim in that scene.
+       Example: if the text says "Amnesty International found apartheid",
+       search "Amnesty International report cover" or "apartheid map".
+       NOT generic "courtroom" or "people arguing".
+    2. **Topic-anchored** — include the topic name/context.
+    3. **Literal** — if text says "market crashed", search "stock market crash chart",
+       not "sad man".
+    4. **Pexels-searchable** — use concrete nouns, not abstract concepts.
 
     ### OUTPUT FORMAT (Strict JSON):
     [
         {{
             "id": 1,
-            "text": "In 1995, fourteen wolves were released into Yellowstone Park, and they changed the rivers.",
-            "visual_1": "wolves running snow aerial",
-            "visual_2": "river flowing forest drone",
-            "mood": "intriguing" 
-        }},
-        {{
-            "id": 2,
-            "text": "It sounds impossible, but the biology is actually simple math.",
-            "visual_1": "person shocked looking at camera",
-            "visual_2": "blackboard math equations chalk",
-            "mood": "educational"
+            "text": "Fact-backed narration with source citation.",
+            "visual_1": "specific keyword tied to this claim",
+            "visual_2": "specific keyword tied to this claim",
+            "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
     """
@@ -71,60 +67,62 @@ class ContentBrain:
             return None
 
     def refine_script(self, user_text, topic):
-        print(f"[Script] Understanding and refining your script...")
+        print(f"[Script] Understanding, extracting claims, and condensing...")
         word_count = len(user_text.split())
         length_note = ""
-        if word_count > 500:
+        if word_count > 300:
             length_note = f"""
-    NOTE: The user's script is {word_count} words, which is too long for a single 
-    YouTube Short (max ~60 seconds / ~150 words of narration). You MUST:
-    - Summarize and condense the most important parts.
-    - Prioritize the hook, key facts, and the twist/outro.
-    - Cut repetitive or次要 details.
-    - Output exactly 8-9 scenes that cover the essential story.
+    The user's document is {word_count} words. You MUST:
+    - Extract EVERY distinct claim/fact from the document — do NOT drop any.
+    - Condense each claim into 1 punchy sentence while preserving source attribution.
+    - Group related claims into 8 scenes.
+    - If you cannot fit all claims, prioritize the most impactful ones that 
+      together tell a complete story, but note what was cut in a summary.
     """
         prompt = f"""
-    You are a professional script editor for a high-retention "Edutainment" YouTube Shorts channel.
+    You are an investigative script editor for a high-retention YouTube Shorts channel.
+
     Topic: {topic}
 
-    A user has written a script below. Your job is to:
-    1. Understand the story they want to tell.
-    2. Fix any grammar, tone, or pacing issues.
-    3. Restructure into well-flowing scenes (Hook -> Context -> Mechanism -> Twist -> Outro).
-    4. Generate appropriate Pexels-optimised search terms for each scene.
-    5. Keep the user's original story, facts, and narrative intact — do not change the core content.
+    A user has provided a research document below. Your job:
+    1. Read and UNDERSTAND every claim in the document.
+    2. Extract ALL distinct facts/arguments — do not cherry-pick only one side.
+    3. Condense each claim into 1-2 punchy, source-backed sentences.
+    4. The narration text MUST include the source for each claim (e.g., 
+       "Amnesty International reported...", "The ICJ advisory opinion stated...", 
+       "According to the UN Special Rapporteur...").
+    5. Restructure into a tight 8-scene narrative.
+    {length_note}
 
     ### LENGTH CONSTRAINT:
-    A YouTube Short has ~40-60 seconds of narration, roughly 8-9 short scenes.
-    {length_note}
-    If the source fits in 8-9 scenes, use it fully. If not, prioritize the 
-    most engaging parts — the hook, the key revelation, and the strong outro.
+    YouTube Short = ~40-60 seconds narration. Every word must count.
+
+    ### VISUAL RULES (CRITICAL):
+    Every scene has TWO visual keywords. These MUST be:
+    1. **Reasoned** — directly tied to the specific claim in that scene.
+       Example: text about "UN finding apartheid" -> "UN report document" or
+       "apartheid comparison map". NOT generic unrelated footage.
+    2. **Topic-anchored** — include the topic name/context.
+    3. **Literal** — match the specific noun in the text.
+    4. **Pexels-searchable** — concrete nouns, not abstract concepts.
 
     ### RULES:
-    - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides..."). Convert any 1st/2nd person to 3rd.
-    - **Tone:** Engaging, fast-paced, logical. No fluff.
-    - **Structure:** 8-9 Scenes.
-    - **Flow:** Hook -> Context -> Mechanism -> Twist -> Outro.
-    - For EVERY scene, provide TWO distinct search terms:
-      - **visual_1:** Matches the *start* of the sentence.
-      - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
-    - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
-    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
-      name or context. For example, if the topic is "Madurai culture", search 
-      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
-      just "street food". This ensures stock footage is specific to the subject.
+    - Perspective: Strictly 3rd Person.
+    - Tone: Fast-paced, factual, no fluff.
+    - Structure: 8 scenes. Flow: Hook -> Context -> Evidence -> Counterpoint -> Outro.
+    - Keep the user's original claims intact — do not fabricate or exaggerate.
 
-    ### USER'S SCRIPT:
+    ### USER'S DOCUMENT:
     {user_text}
 
     ### OUTPUT FORMAT (Strict JSON):
     [
         {{
             "id": 1,
-            "text": "Your scene text here.",
-            "visual_1": "search term for first half",
-            "visual_2": "search term for second half",
-            "mood": "intriguing | educational | ominous | mysterious"
+            "text": "Source-backed narration sentence.",
+            "visual_1": "keyword tied to this claim",
+            "visual_2": "keyword tied to this claim",
+            "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
     """
@@ -141,44 +139,44 @@ class ContentBrain:
             return None
 
     def expand_script(self, user_text, topic):
-        print(f"[Script] Expanding your ideas into a full script...")
+        print(f"[Script] Expanding your ideas with research-backed script...")
         word_count = len(user_text.split())
         length_note = ""
-        if word_count > 500:
+        if word_count > 300:
             length_note = f"""
-    NOTE: The user's material is {word_count} words, which is too long for a
-    single YouTube Short. Select the best ideas and condense them into 
-    8-9 scenes that capture the essence.
+    The user's material is {word_count} words. Select the best ideas and 
+    condense them into 8 scenes that tell a complete, source-backed story.
     """
         prompt = f"""
-    You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
+    You are an investigative scriptwriter for a high-retention YouTube Shorts channel.
+
     Topic: {topic}
 
-    A user has provided their rough ideas below. Expand them into a polished
-    8-9 scene script following the exact format required.
+    A user has provided their rough ideas below. Expand them into a polished,
+    FACT-BACKED 8-scene script.
+
+    ### YOUR JOB:
+    - Take the user's ideas as inspiration.
+    - Research and write each claim with source attribution.
+    - If the user makes a claim, include its source (e.g., "According to the 
+      UN...", "Human Rights Watch documented...").
+    - Do NOT make unsourced assertions.
+    {length_note}
 
     ### LENGTH CONSTRAINT:
-    A YouTube Short has ~40-60 seconds of narration, roughly 8-9 short scenes.
-    {length_note}
-    If the source fits, use it fully. If it's too long, pick the best ideas
-    and condense them into a tight, engaging narrative.
+    YouTube Short = ~40-60 seconds narration. Every word must count.
+
+    ### VISUAL RULES (CRITICAL):
+    Every scene has TWO visual keywords. These MUST be:
+    1. **Reasoned** — directly tied to the specific claim in that scene.
+    2. **Topic-anchored** — include the topic name/context.
+    3. **Literal** — match the specific noun in the text.
+    4. **Pexels-searchable** — concrete nouns, not abstract concepts.
 
     ### RULES:
-    - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides...").
-    - **Tone:** Engaging, fast-paced, logical. No fluff.
-    - **Structure:** 8-9 Scenes total.
-    - **Flow:** Hook -> Context -> Mechanism (How it works) -> Twist -> Outro.
-    - For EVERY scene, provide TWO distinct search terms:
-      - **visual_1:** Matches the *start* of the sentence.
-      - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
-    - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
-    - **CRITICAL - Topic Anchoring:** Every visual keyword MUST include the topic's 
-      name or context. For example, if the topic is "Madurai culture", search 
-      "Madurai Meenakshi temple" not just "temple", "Madurai street food" not 
-      just "street food". This ensures stock footage is specific to the subject.
-
-    Keep the feel and direction of the user's ideas, but improve structure,
-    pacing, and visual hooks.
+    - Perspective: Strictly 3rd Person.
+    - Tone: Fast-paced, factual, no fluff.
+    - Structure: 8 scenes. Flow: Hook -> Context -> Evidence -> Counterpoint -> Outro.
 
     ### USER'S IDEAS:
     {user_text}
@@ -187,10 +185,10 @@ class ContentBrain:
     [
         {{
             "id": 1,
-            "text": "Your scene text here.",
-            "visual_1": "search term for first half",
-            "visual_2": "search term for second half",
-            "mood": "intriguing | educational | ominous | mysterious"
+            "text": "Source-backed narration sentence.",
+            "visual_1": "keyword tied to this claim",
+            "visual_2": "keyword tied to this claim",
+            "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
     """
