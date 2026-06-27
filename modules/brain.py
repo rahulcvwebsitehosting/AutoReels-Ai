@@ -82,3 +82,52 @@ class ContentBrain:
         except (json.JSONDecodeError, ValueError) as e:
             print(f"[ERROR] Invalid script format: {e}")
             return None
+
+    def expand_script(self, user_script, topic):
+        print(f"[Script] Expanding your ideas into a full script...")
+        user_json = json.dumps(user_script, indent=2)
+        prompt = f"""
+    You are the lead scriptwriter for a high-retention "Edutainment" YouTube Shorts channel.
+    Topic: {topic}
+
+    A user has provided their rough ideas below. Expand them into a polished
+    8-9 scene script following the exact format required.
+
+    ### RULES:
+    - **Perspective:** Strictly **3rd Person** ("Scientists found...", "The ocean hides...").
+    - **Tone:** Engaging, fast-paced, logical. No fluff.
+    - **Structure:** 8-9 Scenes total.
+    - **Flow:** Hook -> Context -> Mechanism (How it works) -> Twist -> Outro.
+    - For EVERY scene, provide TWO distinct search terms:
+      - **visual_1:** Matches the *start* of the sentence.
+      - **visual_2:** Matches the *end* of the sentence or provides a reaction/context.
+    - **Strictly Literal:** If the text is "The economy crashed," do NOT search "sad man". Search "Stock market red chart".
+
+    Keep the feel and direction of the user's ideas, but improve structure,
+    pacing, and visual hooks.
+
+    ### USER'S IDEAS:
+    {user_json}
+
+    ### OUTPUT FORMAT (Strict JSON):
+    [
+        {{
+            "id": 1,
+            "text": "Your scene text here.",
+            "visual_1": "search term for first half",
+            "visual_2": "search term for second half",
+            "mood": "intriguing | educational | ominous | mysterious"
+        }}
+    ]
+    """
+
+        response = self.llm.generate(prompt)
+        clean_text = response.replace('```json', '').replace('```', '').strip()
+
+        try:
+            script_data = json.loads(clean_text)
+            return script_data
+        except json.JSONDecodeError:
+            print("[ERROR] Error parsing expanded script JSON. Raw output:")
+            print(clean_text)
+            return None

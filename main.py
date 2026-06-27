@@ -111,6 +111,21 @@ async def main():
         if script is None:
             print("[ERROR] Script parsing failed. Aborting.")
             return
+        print()
+        print("[SCRIPT] How should AI handle your script?")
+        print("  1. Follow it exactly — use my script as-is")
+        print("  2. Use as a general idea — AI expands it into a full script")
+        while True:
+            choice = input("Enter choice [1-2] (default 1): ").strip()
+            if not choice or choice == "1":
+                break
+            if choice == "2":
+                script = brain.expand_script(script, topic)
+                if script is None:
+                    print("[ERROR] Script expansion failed. Aborting.")
+                    return
+                break
+            print("   Invalid choice, try again.")
     else:
         try:
             script = brain.generate_script(topic)
