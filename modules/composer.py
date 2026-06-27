@@ -1,5 +1,6 @@
 import os
 import random
+import subprocess
 import ffmpeg
 
 
@@ -122,20 +123,28 @@ class Composer:
                 .run(overwrite_output=True, quiet=True)
             )
 
-            # Overlay subtitles (use just the filename, cwd handles the path)
+            # Overlay subtitles (use just the filename + cwd to avoid Windows path colon issue)
             srt_filename = f"scene_{scene_id}.srt"
-            (
-                ffmpeg.input(base_path)
-                .filter('subtitles', srt_filename, force_style='Alignment=2,FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF,BackColour=&H80000000,Outline=1,Shadow=0')
-                .output(subtitled_path, vcodec='libx264', acodec='copy', pix_fmt='yuv420p')
-                .run(overwrite_output=True, quiet=True, cwd=self.temp_dir)
-            )
+            style = 'Alignment=2,FontSize=24,FontName=Arial,PrimaryColour=&HFFFFFF,BackColour=&H80000000,Outline=1,Shadow=0'
+            vf = f'subtitles={srt_filename}:force_style={style}'.replace(',', '\\,')
+            result = subprocess.run([
+                'ffmpeg', '-y',
+                '-i', base_path,
+                '-vf', vf,
+                '-c:v', 'libx264', '-c:a', 'copy', '-pix_fmt', 'yuv420p',
+                subtitled_path
+            ], capture_output=True, text=True, cwd=self.temp_dir)
+            if result.returncode != 0:
+                raise RuntimeError(result.stderr[:500])
 
             return subtitled_path
 
         except ffmpeg.Error as e:
             error_log = e.stderr.decode('utf8') if e.stderr else str(e)
-            print(f"[ERROR] Render fail scene {scene_id}: {error_log}")
+            print(f"[ERROR] Render fail scene {scene_id}: {error_log[:500]}")
+            return None
+        except Exception as e:
+            print(f"[ERROR] Render fail scene {scene_id}: {e}")
             return None
 
     def render_all_scenes(self, script_data, video_pairs, avatar_path=None):
