@@ -7,10 +7,16 @@ load_dotenv()
 
 
 def _extract_json(text):
-    """Strip markdown fences and trailing content, return only the JSON array."""
+    """Strip markdown fences and trailing content, return only the JSON."""
     cleaned = text.replace('```json', '').replace('```', '').strip()
+    # Try array first
     start = cleaned.find('[')
     end = cleaned.rfind(']')
+    if start != -1 and end != -1 and end > start:
+        return cleaned[start:end+1]
+    # Fallback: try object
+    start = cleaned.find('{')
+    end = cleaned.rfind('}')
     if start != -1 and end != -1 and end > start:
         return cleaned[start:end+1]
     return cleaned
@@ -71,6 +77,7 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
+        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
@@ -146,6 +153,7 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
+        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
@@ -215,6 +223,7 @@ class ContentBrain:
     """
 
         response = self.llm.generate(prompt)
+        print(f"[DEBUG] LLM response (first 200 chars): {response[:200]}")
         clean_text = _extract_json(response)
 
         try:
