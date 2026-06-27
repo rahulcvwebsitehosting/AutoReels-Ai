@@ -7,18 +7,35 @@ load_dotenv()
 
 
 def _extract_json(text):
-    """Strip markdown fences and trailing content, return only the JSON."""
+    """Strip markdown fences and trailing content, return valid JSON array."""
     cleaned = text.replace('```json', '').replace('```', '').strip()
-    # Try array first
+
+    # Try array [ ... ]
     start = cleaned.find('[')
     end = cleaned.rfind(']')
     if start != -1 and end != -1 and end > start:
         return cleaned[start:end+1]
-    # Fallback: try object
+
+    # Try object(s) { ... } — could be single or comma-separated objects
     start = cleaned.find('{')
     end = cleaned.rfind('}')
     if start != -1 and end != -1 and end > start:
-        return cleaned[start:end+1]
+        candidate = cleaned[start:end+1]
+        # Try as-is (single valid object)
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass
+        # Try wrapping in array (handles {obj1},{obj2},... without outer brackets)
+        array_candidate = '[' + candidate + ']'
+        try:
+            json.loads(array_candidate)
+            return array_candidate
+        except json.JSONDecodeError:
+            pass
+        return candidate
+
     return cleaned
 
 
@@ -72,8 +89,8 @@ class ContentBrain:
         }}
     ]
 
-    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
-    notes, explanations, or summaries before or after the JSON.
+    IMPORTANT: Output ONLY a JSON array — starts with '[' and ends with ']'.
+    Do NOT add any text, notes, explanations, or summaries.
     """
 
         try:
@@ -151,8 +168,8 @@ class ContentBrain:
         }}
     ]
 
-    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
-    notes, explanations, or summaries before or after the JSON.
+    IMPORTANT: Output ONLY a JSON array — starts with '[' and ends with ']'.
+    Do NOT add any text, notes, explanations, or summaries.
     """
 
         try:
@@ -224,8 +241,8 @@ class ContentBrain:
         }}
     ]
 
-    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
-    notes, explanations, or summaries before or after the JSON.
+    IMPORTANT: Output ONLY a JSON array — starts with '[' and ends with ']'.
+    Do NOT add any text, notes, explanations, or summaries.
     """
 
         try:
