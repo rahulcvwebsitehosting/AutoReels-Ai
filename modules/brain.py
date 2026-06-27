@@ -1,8 +1,20 @@
 import json
+import re
 from dotenv import load_dotenv
 from modules.llm import get_llm_client
 
 load_dotenv()
+
+
+def _extract_json(text):
+    """Strip markdown fences and trailing content, return only the JSON array."""
+    cleaned = text.replace('```json', '').replace('```', '').strip()
+    start = cleaned.find('[')
+    end = cleaned.rfind(']')
+    if start != -1 and end != -1 and end > start:
+        return cleaned[start:end+1]
+    return cleaned
+
 
 class ContentBrain:
     def __init__(self, provider_id=None):
@@ -53,10 +65,13 @@ class ContentBrain:
             "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
+
+    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
+    notes, explanations, or summaries before or after the JSON.
     """
 
         response = self.llm.generate(prompt)
-        clean_text = response.replace('```json', '').replace('```', '').strip()
+        clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
@@ -125,10 +140,13 @@ class ContentBrain:
             "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
+
+    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
+    notes, explanations, or summaries before or after the JSON.
     """
 
         response = self.llm.generate(prompt)
-        clean_text = response.replace('```json', '').replace('```', '').strip()
+        clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
@@ -191,10 +209,13 @@ class ContentBrain:
             "mood": "intriguing | educational | ominous | mysterious | factual"
         }}
     ]
+
+    IMPORTANT: Output ONLY the JSON array above. Do NOT add any text,
+    notes, explanations, or summaries before or after the JSON.
     """
 
         response = self.llm.generate(prompt)
-        clean_text = response.replace('```json', '').replace('```', '').strip()
+        clean_text = _extract_json(response)
 
         try:
             script_data = json.loads(clean_text)
